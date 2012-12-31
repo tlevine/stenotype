@@ -1,107 +1,94 @@
-//LED, in case I need it
-const int ledPin =  13;
-
 //Index for loops
 int i;
 
-//Number of keys on the keyboard
-const int keycount=22;
-const int keydictsize = keycount + 1;
-const int wordChordLength=128;
+// Number of different keys
+const int keyCount = 11;
 
-//Stenograph letters, used for serial testing
-const char keydict[keydictsize] = "STKPWHRAO*EUFRPBLGTSDZ";
-const char keydict_return='\n';
-const char keydict_space=' ';
+//Stenograph letters
+// const char keydict[keydictsize] = "STKPWHRAO*EUFRPBLGTSDZ";
+const char keyDict[keyCount] = "FRPBLGTSDZ";
 
 //Pin numbers and states
-const int pins[keycount]={47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 11, 10, 9, 8};
-int pinStates[keycount];
+const int pins[keyCount]={33, 35, 37, 39, 41, 43, 45, 47, 49, 51};
 
-int numKeyPressed=1;
-const int numPin=16;
+// The current chord
+char currentChord[keyCount];
 
-// Output mode
-// HIGH -> like a stenograph tape
-// LOW  -> English
-const int rawOutputModePin=15;
+// The keys currently pressed
+char currentKeysPressed[keyCount];
 
-//The current chord
-char rawChord[keycount];
-char wordChord[wordChordLength];
-int chordEmpty=1;
-int chordEmptyThisIteration;
-int rightAfterCarriageReturn=1;
+// The previous keys pressed 
+char previousKeysPressed[keyCount];
 
-//Turn pin states to off
-void flushPinStates(){
-  for (i=0;i<keycount;i++){
-    pinStates[i]=0;
-    rawChord[i]=keydict_space;
-    chordEmpty=1;
-  }
-}
-
-//Read my binary dictionary format.
-//(Put the function here. Maybe call it readdict.)
+// Array equality
+int hasChanged;
+int stillPressed;
 
 void setup() {
   Serial.begin(9600);
-  //Set pin states to off
-  flushPinStates();
-
-  // Initialize pins
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin,LOW);
-
-  for (i=0;i<keycount;i++){
+  for (i=0;i<keyCount;i++){
+    // Initialize pins
     pinMode(pins[i],INPUT);
-    digitalWrite(pins[i] 
-    , LOW); // turn on pullup resistors
+
+    // Turn on pullup resistors
+    digitalWrite(pins[i] , LOW);
+
+    // Start an empty chord.
+    currentChord[i] = ' ';
+    currentKeysPressed[i] = ' ';
+    previousKeysPressed[i] = ' ';
   }
-  pinMode(rawOutputModePin,INPUT);
-  digitalWrite(rawOutputModePin, LOW); // turn on pullup resistors
 }
 
 void loop(){
-  chordEmptyThisIteration=1;
-  //Set pin state based on the current chord.
-  //Only turn pins on; pins are turned off on carriage returns (above).
-  for (i=0;i<keycount;i++){
-    if (digitalRead(pins[i])==HIGH){
-      pinStates[i]=1;
-      chordEmpty=0;
-      chordEmptyThisIteration=0;
+  for (i=0;i<keyCount;i++){
+    if (digitalRead(pins[i]) == HIGH) {
+      currentKeysPressed[i] = keyDict[i];
+    } else {
+      currentKeysPressed[i] = ' ';
+    }
+  }
+  delay(300);
+
+  // Have the keys changed since last iteration?
+  hasChanged = 0;
+  for (i=0;i<keyCount;i++){
+    if (currentKeysPressed[i] != previousKeysPressed[i]) {
+      hasChanged = 1;
+    }
+  }
+    
+  // Are they still being pressed?
+  stillPressed = 0;
+  for (i=0;i<keyCount;i++){
+    if (currentKeysPressed[i] != ' ') {
+      stillPressed = 1;
+      break;
+    }
+  }
+
+  if (hasChanged) {
+    Serial.print('a');
+    // No change since last iteration
+  } else if (!stillPressed){
+    Serial.print('b');
+    // All keys been released.
+    for (i=0;i<keyCount;i++){
+      Serial.print(currentChord[i]);
+      currentChord[i] = ' ';
+    }
+  } else {
+    Serial.print('c');
+    // Pressed keys have changed
+    for (i=0;i<keyCount;i++){
+      if (currentKeysPressed[i] != ' '){
+        currentChord[i] = currentKeysPressed[i];
+      }
     }
   }
   
-  //If a carriage return is not being triggered,
-  if (!chordEmpty && chordEmptyThisIteration) {
-    digitalWrite(ledPin,LOW);
-    if (!chordEmpty){
-      rightAfterCarriageReturn=0;
-    }
-
+  // Regardless,
+  for (i=0;i<keyCount;i++){
+    previousKeysPressed[i] = currentKeysPressed[i];
   }
-  else {
-    //Carriage return triggered
-    digitalWrite(ledPin,HIGH);
-
-    // Populate the chord
-    for (i=0;i<keycount;i++){
-      if (pinStates[i]){
-        rawChord[i]=keydict[i];
-      }
-    }
-
-    //Print the chord if there's anything in it.
-    if (chordEmpty==0){
-      for (i=0;i<keycount;i++){
-        Serial.print(rawChord[i]);
-      }
-      Serial.print('\n');
-      flushPinStates();
-    }  /* End chord for */    
-  } // End carriage return if/else
 }
-
