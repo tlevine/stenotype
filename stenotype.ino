@@ -34,9 +34,9 @@ void setup() {
     digitalWrite(pins[i] , LOW);
 
     // Start an empty chord.
-    currentChord[i] = ' ';
-    currentKeysPressed[i] = ' ';
-    previousKeysPressed[i] = ' ';
+    currentChord[i] = 0;
+    currentKeysPressed[i] = 0;
+    previousKeysPressed[i] = 0;
   }
 }
 
@@ -45,7 +45,7 @@ void loop(){
     if (digitalRead(pins[i]) == HIGH) {
       currentKeysPressed[i] = keyDict[i];
     } else {
-      currentKeysPressed[i] = ' ';
+      currentKeysPressed[i] = 0;
     }
   }
   delay(300);
@@ -61,27 +61,29 @@ void loop(){
   // Are they still being pressed?
   stillPressed = 0;
   for (i=0;i<keyCount;i++){
-    if (currentKeysPressed[i] != ' ') {
+    if (currentKeysPressed[i] != 0) {
+//      Serial.print(currentKeysPressed[i]);
       stillPressed = 1;
       break;
     }
   }
 
-  if (hasChanged) {
-    Serial.print('a');
+  if (!hasChanged) {
+    Serial.print('A');
     // No change since last iteration
   } else if (!stillPressed){
-    Serial.print('b');
+    Serial.print('B');
     // All keys been released.
     for (i=0;i<keyCount;i++){
       Serial.print(currentChord[i]);
-      currentChord[i] = ' ';
+      currentChord[i] = 0;
     }
+    Serial.print('\n');
   } else {
-    Serial.print('c');
+    Serial.print('C');
     // Pressed keys have changed
     for (i=0;i<keyCount;i++){
-      if (currentKeysPressed[i] != ' '){
+      if (currentKeysPressed[i] != 0){
         currentChord[i] = currentKeysPressed[i];
       }
     }
