@@ -92,7 +92,7 @@ void loop(){
       }
       Serial.print('\n');
     }
-
+    
     // Reset
     for (i=0;i<keyCount;i++){
       previousChord[i] = currentChord[i];
@@ -111,5 +111,4 @@ void loop(){
   for (i=0;i<keyCount;i++){
     previousKeysPressed[i] = currentKeysPressed[i];
   }
-  delay(10);
 }
