@@ -1,11 +1,11 @@
-//Index for loops
+// An index for loops
 int i;
 
-// Number of different keys
+// How many different keys do we have?
 const int keyCount = 11;
 
 //Stenograph letters
-// const char keydict[keydictsize] = "STKPWHRAO*EUFRPBLGTSDZ";
+// const char keydict[keyCount] = "STKPWHRAO*EUFRPBLGTSDZ";
 const char keyDict[keyCount] = "FRPBLGTSDZ";
 
 //Pin numbers and states
@@ -81,7 +81,7 @@ void loop(){
     for (i=0;i<keyCount;i++){
       if (currentChord[i] != previousChord[i]) {
         equalsPreviousChord = 0;
-        break
+        break;
       }
     }
 
