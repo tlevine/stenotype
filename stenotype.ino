@@ -11,6 +11,10 @@ const char keyDict[keyCount] = "FRPBLGTSDZ";
 //Pin numbers and states
 const int pins[keyCount]={33, 35, 37, 39, 41, 43, 45, 47, 49, 51};
 
+// The previous chord that was printed
+char previousChord[keyCount];
+int equalsPreviousChord;
+
 // The current chord
 char currentChord[keyCount];
 
@@ -48,7 +52,6 @@ void loop(){
       currentKeysPressed[i] = 0;
     }
   }
-  delay(300);
 
   // Have the keys changed since last iteration?
   hasChanged = 0;
@@ -69,18 +72,33 @@ void loop(){
   }
 
   if (!hasChanged) {
-    Serial.print('A');
     // No change since last iteration
   } else if (!stillPressed){
-    Serial.print('B');
     // All keys been released.
+
+    // Make sure that this isn't an error; check that this is different from the previous line.
+    equalsPreviousChord = 1;
     for (i=0;i<keyCount;i++){
-      Serial.print(currentChord[i]);
+      if (currentChord[i] != previousChord[i]) {
+        equalsPreviousChord = 0;
+        break
+      }
+    }
+
+    // Print
+    if (!equalsPreviousChord) {
+      for (i=0;i<keyCount;i++){
+        Serial.print(currentChord[i]);
+      }
+      Serial.print('\n');
+    }
+
+    // Reset
+    for (i=0;i<keyCount;i++){
+      previousChord[i] = currentChord[i];
       currentChord[i] = 0;
     }
-    Serial.print('\n');
   } else {
-    Serial.print('C');
     // Pressed keys have changed
     for (i=0;i<keyCount;i++){
       if (currentKeysPressed[i] != 0){
@@ -93,4 +111,5 @@ void loop(){
   for (i=0;i<keyCount;i++){
     previousKeysPressed[i] = currentKeysPressed[i];
   }
+  delay(10);
 }
